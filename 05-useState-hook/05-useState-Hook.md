@@ -20,3 +20,47 @@ const [state, setState] = useState(initialValue);
 
 - The state variable and its setter are named in the pattern `[something, setSomething]`, using array destructuring.
 - `useState()` is called only at the top level of a component or custom hook, not inside loops, conditions, or nested functions.
+
+### Problem statement
+
+- When state is updated multiple times within a single event using direct values, React batches the updates and processes them together. Each update receives the state value from the current render as input, so every update uses the same value and produces the same result rather than accumulating the changes.
+
+```jsx
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  function handleClick() {
+    setCount(count + 1);
+    setCount(count + 1);
+    setCount(count + 1);
+  }
+
+  return <button onClick={handleClick}>{count}</button>;
+}
+```
+
+- As Result, `count` becomes `1`, not `3`, because all three updates use the same initial state value (`0`).
+
+### Solution
+
+- To accumulate multiple state updates, use a functional updater by passing an arrow function to the setter. React automatically provides the previous state value (`prev`) as an argument to the function. Each updater receives the result of the previous update, allowing state changes to accumulate.
+
+```jsx
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  function handleClick() {
+    setCount((prevCounter) => prevCounter + 1);
+    setCount((prevCounter) => prevCounter + 1);
+    setCount((prevCounter) => prevCounter + 1);
+  }
+
+  return <button onClick={handleClick}>{count}</button>;
+}
+```
+
+- As Result, `count` becomes `3`.
+
+### Better Approach
+
+- Anticipate multiple state updates and perform a single state update to avoid unnecessary re-renders.
